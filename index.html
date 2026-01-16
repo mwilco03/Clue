@@ -275,118 +275,6 @@
             background: #2d2d2d;
         }
 
-        .solution-section {
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        body.light .solution-section {
-            background: white;
-        }
-
-        body.dark .solution-section {
-            background: #2d2d2d;
-        }
-
-        .solution-content {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-top: 15px;
-        }
-
-        .solution-category {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .solution-category h3 {
-            font-size: 14px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        body.light .solution-category h3 {
-            color: #7f8c8d;
-        }
-
-        body.dark .solution-category h3 {
-            color: #95a5a6;
-        }
-
-        .solution-cards {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .solution-card {
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid transparent;
-        }
-
-        body.light .solution-card {
-            background: #ecf0f1;
-            color: #2c3e50;
-        }
-
-        body.dark .solution-card {
-            background: #3d3d3d;
-            color: #e0e0e0;
-        }
-
-        .solution-card:hover {
-            transform: translateX(4px);
-        }
-
-        body.light .solution-card:hover {
-            background: #d5dbdb;
-        }
-
-        body.dark .solution-card:hover {
-            background: #4a4a4a;
-        }
-
-        .solution-card.selected {
-            border-color: #3498db;
-        }
-
-        body.light .solution-card.selected {
-            background: #3498db;
-            color: white;
-        }
-
-        body.dark .solution-card.selected {
-            background: #2980b9;
-            color: white;
-        }
-
-        .accusation-display {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        body.light .accusation-display {
-            background: #e8f4f8;
-            color: #2c3e50;
-        }
-
-        body.dark .accusation-display {
-            background: #1e3a4a;
-            color: #e0e0e0;
-        }
-
         .notes-section {
             padding: 20px;
             border-radius: 8px;
@@ -496,14 +384,6 @@
             th, td {
                 padding: 4px;
             }
-
-            .solution-content {
-                flex-direction: column;
-            }
-
-            .accusation-display {
-                font-size: 16px;
-            }
         }
     </style>
 </head>
@@ -568,11 +448,6 @@
             );
             const [darkMode, setDarkMode] = useState(false);
             const [notes, setNotes] = useState('');
-            const [accusation, setAccusation] = useState({
-                suspects: null,
-                weapons: null,
-                rooms: null
-            });
 
             useEffect(() => {
                 document.body.className = darkMode ? 'dark' : 'light';
@@ -601,7 +476,6 @@
                     setState(createInitialState());
                     setPlayerNames(Array.from({ length: PLAYER_COUNT }, (_, i) => (i + 1).toString()));
                     setNotes('');
-                    setAccusation({ suspects: null, weapons: null, rooms: null });
                 }
             }, [createInitialState]);
 
@@ -619,20 +493,6 @@
                 const states = state[category][item];
                 return states.every(s => s === CELL_STATES.UNKNOWN || s === CELL_STATES.CROSSED || s === CELL_STATES.UNSURE);
             }, [state]);
-
-            const getPossibleCards = useCallback((category) => {
-                return CATEGORIES[category].filter(item => {
-                    const states = state[category][item];
-                    return !states.some(s => s === CELL_STATES.CHECKED);
-                });
-            }, [state]);
-
-            const toggleAccusation = useCallback((category, item) => {
-                setAccusation(prev => ({
-                    ...prev,
-                    [category]: prev[category] === item ? null : item
-                }));
-            }, []);
 
             const renderCategory = useCallback((categoryName, items) => {
                 const displayName = CATEGORY_LABELS[categoryName];
@@ -683,47 +543,6 @@
                 );
             }, [state, playerNames, cycleCell, updatePlayerName, isEnvelopeCandidate]);
 
-            const renderSolutionSection = useCallback(() => {
-                const possibleSuspects = getPossibleCards('suspects');
-                const possibleWeapons = getPossibleCards('weapons');
-                const possibleRooms = getPossibleCards('rooms');
-
-                const accusationText = accusation.suspects && accusation.weapons && accusation.rooms
-                    ? `I accuse ${accusation.suspects} with the ${accusation.weapons} in the ${accusation.rooms}!`
-                    : 'Select one from each category to make your accusation';
-
-                return (
-                    <div className="solution-section">
-                        <h2>Make Your Accusation</h2>
-                        <div className="solution-content">
-                            {[
-                                { key: 'suspects', label: 'Who', items: possibleSuspects },
-                                { key: 'weapons', label: 'What', items: possibleWeapons },
-                                { key: 'rooms', label: 'Where', items: possibleRooms }
-                            ].map(({ key, label, items }) => (
-                                <div key={key} className="solution-category">
-                                    <h3>{label}</h3>
-                                    <div className="solution-cards">
-                                        {items.map(item => (
-                                            <div
-                                                key={item}
-                                                className={`solution-card ${accusation[key] === item ? 'selected' : ''}`}
-                                                onClick={() => toggleAccusation(key, item)}
-                                            >
-                                                {item}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="accusation-display">
-                            {accusationText}
-                        </div>
-                    </div>
-                );
-            }, [accusation, getPossibleCards, toggleAccusation]);
-
             return (
                 <div className="app">
                     <header>
@@ -760,8 +579,6 @@
                             renderCategory(category, items)
                         )}
                     </div>
-
-                    {renderSolutionSection()}
 
                     <div className="notes-section">
                         <h2>Notes</h2>

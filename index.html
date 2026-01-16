@@ -1,255 +1,281 @@
-import React, { useState, useCallback } from 'react';
-
-const SUSPECTS = ['Green', 'Mustard', 'Peacock', 'Plum', 'Scarlett', 'White'];
-const WEAPONS = ['Candlestick', 'Dagger', 'Lead Pipe', 'Revolver', 'Rope', 'Wrench'];
-const ROOMS = ['Ballroom', 'Billiard Room', 'Conservatory', 'Dining Room', 'Hall', 'Kitchen', 'Library', 'Lounge', 'Study'];
-
-const PLAYER_COUNT = 6;
-const CELL_STATES = {
-  UNKNOWN: 'unknown',
-  CHECKED: 'checked',
-  CROSSED: 'crossed'
-};
-
-const ClueTracker = () => {
-  const createInitialState = useCallback(() => {
-    const categories = { suspects: SUSPECTS, weapons: WEAPONS, rooms: ROOMS };
-    
-    return Object.entries(categories).reduce((acc, [category, items]) => {
-      acc[category] = items.reduce((itemAcc, item) => {
-        itemAcc[item] = Array.from({ length: PLAYER_COUNT }, () => CELL_STATES.UNKNOWN);
-        return itemAcc;
-      }, {});
-      return acc;
-    }, {});
-  }, []);
-
-  const [state, setState] = useState(createInitialState);
-
-  const cycleCell = useCallback((category, item, playerIndex) => {
-    setState(prevState => {
-      const currentState = prevState[category][item][playerIndex];
-      const nextState = currentState === CELL_STATES.UNKNOWN ? CELL_STATES.CHECKED :
-                       currentState === CELL_STATES.CHECKED ? CELL_STATES.CROSSED :
-                       CELL_STATES.UNKNOWN;
-
-      return {
-        ...prevState,
-        [category]: {
-          ...prevState[category],
-          [item]: prevState[category][item].map((cellState, idx) =>
-            idx === playerIndex ? nextState : cellState
-          )
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clue Detective Notepad</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      };
-    });
-  }, []);
 
-  const resetAll = useCallback(() => {
-    setState(createInitialState());
-  }, [createInitialState]);
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
 
-  const renderCategory = useCallback((categoryName, items) => {
-    const displayName = categoryName === 'suspects' ? 'WHO?' :
-                       categoryName === 'weapons' ? 'WHAT?' :
-                       'WHERE?';
-
-    return (
-      <div key={categoryName} className="category">
-        <h2>{displayName}</h2>
-        <table>
-          <thead>
-            <tr>
-              <th></th>
-              {Array.from({ length: PLAYER_COUNT }, (_, i) => (
-                <th key={i}>{i + 1}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {items.map(item => (
-              <tr key={item}>
-                <td className="item-name">{item}</td>
-                {state[categoryName][item].map((cellState, playerIdx) => (
-                  <td
-                    key={playerIdx}
-                    className={`cell ${cellState}`}
-                    onClick={() => cycleCell(categoryName, item, playerIdx)}
-                  >
-                    {cellState === CELL_STATES.CHECKED && '✓'}
-                    {cellState === CELL_STATES.CROSSED && '✗'}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  }, [state, cycleCell]);
-
-  return (
-    <div className="app">
-      <header>
-        <h1>Clue Detective Notepad</h1>
-        <button onClick={resetAll} className="reset-btn">Reset All</button>
-      </header>
-      
-      <div className="categories">
-        {renderCategory('suspects', SUSPECTS)}
-        {renderCategory('weapons', WEAPONS)}
-        {renderCategory('rooms', ROOMS)}
-      </div>
-
-      <style jsx>{`
         .app {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 20px;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: #f5f5f5;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
 
         header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 30px;
-          padding: 20px;
-          background: white;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         h1 {
-          margin: 0;
-          color: #2c3e50;
-          font-size: 28px;
+            margin: 0;
+            color: #2c3e50;
+            font-size: 28px;
         }
 
         .reset-btn {
-          padding: 10px 20px;
-          background: #e74c3c;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 14px;
-          font-weight: 600;
-          transition: background 0.2s;
+            padding: 10px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
         }
 
         .reset-btn:hover {
-          background: #c0392b;
+            background: #c0392b;
         }
 
         .categories {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .category {
-          background: white;
-          padding: 20px;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         h2 {
-          margin: 0 0 15px 0;
-          color: #34495e;
-          font-size: 18px;
-          font-weight: 700;
-          letter-spacing: 1px;
+            margin: 0 0 15px 0;
+            color: #34495e;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
         }
 
         table {
-          width: 100%;
-          border-collapse: collapse;
+            width: 100%;
+            border-collapse: collapse;
         }
 
         th {
-          padding: 8px;
-          background: #ecf0f1;
-          font-weight: 600;
-          color: #2c3e50;
-          border: 1px solid #bdc3c7;
+            padding: 8px;
+            background: #ecf0f1;
+            font-weight: 600;
+            color: #2c3e50;
+            border: 1px solid #bdc3c7;
         }
 
         td {
-          padding: 8px;
-          border: 1px solid #bdc3c7;
-          text-align: center;
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            text-align: center;
         }
 
         .item-name {
-          text-align: left;
-          font-weight: 500;
-          background: #f8f9fa;
-          min-width: 120px;
+            text-align: left;
+            font-weight: 500;
+            background: #f8f9fa;
+            min-width: 120px;
         }
 
         .cell {
-          cursor: pointer;
-          user-select: none;
-          transition: background 0.15s;
-          min-width: 40px;
-          height: 40px;
-          font-size: 18px;
-          font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+            min-width: 40px;
+            height: 40px;
+            font-size: 18px;
+            font-weight: bold;
         }
 
         .cell:hover {
-          background: #e8f4f8;
+            background: #e8f4f8;
         }
 
         .cell.checked {
-          background: #d4edda;
-          color: #155724;
+            background: #d4edda;
+            color: #155724;
         }
 
         .cell.crossed {
-          background: #f8d7da;
-          color: #721c24;
+            background: #f8d7da;
+            color: #721c24;
         }
 
         .cell.unknown {
-          background: white;
+            background: white;
         }
 
         @media (max-width: 768px) {
-          .app {
-            padding: 10px;
-          }
+            .app {
+                padding: 10px;
+            }
 
-          header {
-            flex-direction: column;
-            gap: 15px;
-          }
+            header {
+                flex-direction: column;
+                gap: 15px;
+            }
 
-          h1 {
-            font-size: 22px;
-          }
+            h1 {
+                font-size: 22px;
+            }
 
-          table {
-            font-size: 14px;
-          }
+            table {
+                font-size: 14px;
+            }
 
-          .cell {
-            min-width: 30px;
-            height: 30px;
-            padding: 4px;
-            font-size: 14px;
-          }
+            .cell {
+                min-width: 30px;
+                height: 30px;
+                padding: 4px;
+                font-size: 14px;
+            }
 
-          th, td {
-            padding: 4px;
-          }
+            th, td {
+                padding: 4px;
+            }
         }
-      `}</style>
-    </div>
-  );
-};
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-export default ClueTracker;
+    <script type="text/babel">
+        const { useState, useCallback } = React;
+
+        const SUSPECTS = ['Green', 'Mustard', 'Peacock', 'Plum', 'Scarlett', 'White'];
+        const WEAPONS = ['Candlestick', 'Dagger', 'Lead Pipe', 'Revolver', 'Rope', 'Wrench'];
+        const ROOMS = ['Ballroom', 'Billiard Room', 'Conservatory', 'Dining Room', 'Hall', 'Kitchen', 'Library', 'Lounge', 'Study'];
+
+        const PLAYER_COUNT = 6;
+        const CELL_STATES = {
+            UNKNOWN: 'unknown',
+            CHECKED: 'checked',
+            CROSSED: 'crossed'
+        };
+
+        const ClueTracker = () => {
+            const createInitialState = useCallback(() => {
+                const categories = { suspects: SUSPECTS, weapons: WEAPONS, rooms: ROOMS };
+                
+                return Object.entries(categories).reduce((acc, [category, items]) => {
+                    acc[category] = items.reduce((itemAcc, item) => {
+                        itemAcc[item] = Array.from({ length: PLAYER_COUNT }, () => CELL_STATES.UNKNOWN);
+                        return itemAcc;
+                    }, {});
+                    return acc;
+                }, {});
+            }, []);
+
+            const [state, setState] = useState(createInitialState);
+
+            const cycleCell = useCallback((category, item, playerIndex) => {
+                setState(prevState => {
+                    const currentState = prevState[category][item][playerIndex];
+                    const nextState = currentState === CELL_STATES.UNKNOWN ? CELL_STATES.CHECKED :
+                                     currentState === CELL_STATES.CHECKED ? CELL_STATES.CROSSED :
+                                     CELL_STATES.UNKNOWN;
+
+                    return {
+                        ...prevState,
+                        [category]: {
+                            ...prevState[category],
+                            [item]: prevState[category][item].map((cellState, idx) =>
+                                idx === playerIndex ? nextState : cellState
+                            )
+                        }
+                    };
+                });
+            }, []);
+
+            const resetAll = useCallback(() => {
+                setState(createInitialState());
+            }, [createInitialState]);
+
+            const renderCategory = useCallback((categoryName, items) => {
+                const displayName = categoryName === 'suspects' ? 'WHO?' :
+                                   categoryName === 'weapons' ? 'WHAT?' :
+                                   'WHERE?';
+
+                return (
+                    <div key={categoryName} className="category">
+                        <h2>{displayName}</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    {Array.from({ length: PLAYER_COUNT }, (_, i) => (
+                                        <th key={i}>{i + 1}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {items.map(item => (
+                                    <tr key={item}>
+                                        <td className="item-name">{item}</td>
+                                        {state[categoryName][item].map((cellState, playerIdx) => (
+                                            <td
+                                                key={playerIdx}
+                                                className={`cell ${cellState}`}
+                                                onClick={() => cycleCell(categoryName, item, playerIdx)}
+                                            >
+                                                {cellState === CELL_STATES.CHECKED && '✓'}
+                                                {cellState === CELL_STATES.CROSSED && '✗'}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                );
+            }, [state, cycleCell]);
+
+            return (
+                <div className="app">
+                    <header>
+                        <h1>Clue Detective Notepad</h1>
+                        <button onClick={resetAll} className="reset-btn">Reset All</button>
+                    </header>
+                    
+                    <div className="categories">
+                        {renderCategory('suspects', SUSPECTS)}
+                        {renderCategory('weapons', WEAPONS)}
+                        {renderCategory('rooms', ROOMS)}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ClueTracker />);
+    </script>
+</body>
+</html>
